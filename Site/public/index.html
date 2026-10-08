@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Творения reusrush — галерея работ.">
+  <title>Творения reusrush</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div id="loader" class="loader">
+    <div class="loader-dot"></div>
+  </div>
+
+  <header class="topbar">
+    <nav class="socials" aria-label="Ссылки">
+      <a href="https://www.donationalerts.com/r/reusrush" target="_blank" rel="noopener">Donate</a>
+      <a href="https://www.youtube.com/@reusrush" target="_blank" rel="noopener">YouTube</a>
+      <a href="https://www.twitch.tv/reusrush" target="_blank" rel="noopener">Twitch</a>
+    </nav>
+
+    <div class="search-wrap">
+      <input id="search" type="search" placeholder="Поиск по названию..." autocomplete="off">
+      <button id="clearSearch" aria-label="Очистить">×</button>
+    </div>
+
+    <button id="adminBtn" class="admin-trigger" aria-label="Открыть вход">⌘</button>
+  </header>
+
+  <main>
+    <section id="searchInfo" class="search-info hidden"></section>
+    <section id="gallery" class="gallery"></section>
+
+    <section id="empty" class="empty hidden">
+      <div class="empty-symbol">⌕</div>
+      <h2>Ничего не найдено</h2>
+      <p>Попробуй другое название.</p>
+    </section>
+  </main>
+
+  <div id="adminModal" class="modal hidden">
+    <div class="modal-card">
+      <button id="closeModal" class="close" aria-label="Закрыть">×</button>
+
+      <div id="loginView">
+        <span class="eyebrow">PRIVATE AREA</span>
+        <h1>Администрирование</h1>
+        <p class="muted">Введи код, чтобы открыть управление работами.</p>
+
+        <form id="loginForm">
+          <input id="loginCode" type="password" placeholder="Код администратора" autocomplete="off">
+          <button type="submit">Войти</button>
+          <div id="loginError" class="error"></div>
+        </form>
+      </div>
+
+      <div id="adminView" class="hidden">
+        <div class="admin-title">
+          <div>
+            <span class="eyebrow">ADMIN</span>
+            <h1>Новая работа</h1>
+          </div>
+          <button id="logoutBtn" class="secondary">Выйти</button>
+        </div>
+
+        <form id="uploadForm">
+          <label>Название
+            <input name="title" maxlength="120" required placeholder="Название работы">
+          </label>
+
+          <label>Описание
+            <textarea name="description" maxlength="500" placeholder="Описание работы"></textarea>
+          </label>
+
+          <label class="file-picker">
+            <input id="imageInput" name="image" type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif" required>
+            <span id="fileName">Выбрать картинку</span>
+          </label>
+
+          <button type="submit" class="publish">Выложить</button>
+          <div id="uploadStatus" class="status"></div>
+        </form>
+
+        <div class="manage">
+          <div class="manage-heading">Опубликованные работы</div>
+          <div id="manageList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <template id="artTemplate">
+    <article class="art-card">
+      <div class="image-wrap">
+        <img loading="lazy" alt="">
+      </div>
+      <div class="art-text">
+        <h2></h2>
+        <p></p>
+      </div>
+    </article>
+  </template>
+
+  <script src="/app.js"></script>
+</body>
+</html>

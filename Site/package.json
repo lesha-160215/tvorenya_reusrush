@@ -1,0 +1,10 @@
+{
+  "name": "tvoreniya-reusrush",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.75.0",
+    "formidable": "^3.5.4"
+  }
+}
