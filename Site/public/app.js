@@ -159,13 +159,26 @@ uploadForm.addEventListener("submit", async e => {
   data.append("code", adminCode);
 
   try {
-    const response = await fetch("/api/upload", {
-      method: "POST",
-      body: data
-    });
+   
+const response = await fetch("/api/upload", {
+  method: "POST",
+  body: data
+});
 
-    const result = await response.json();
+const raw = await response.text();
+let result = {};
 
+try {
+  result = JSON.parse(raw);
+} catch {
+  result = { error: raw.slice(0, 200) || "Пустой ответ сервера" };
+}
+
+if (!response.ok) {
+  uploadStatus.textContent =
+    `Ошибка ${response.status}: ${result.error || "Неизвестная ошибка"}`;
+  return;
+}
     if (response.status === 403) {
       adminCode = "";
       sessionStorage.removeItem("adminCode");
