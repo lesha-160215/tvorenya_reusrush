@@ -1,49 +1,52 @@
-const gallery = document.getElementById("gallery");
-const empty = document.getElementById("empty");
-const search = document.getElementById("search");
-const clearSearch = document.getElementById("clearSearch");
-const searchInfo = document.getElementById("searchInfo");
-const template = document.getElementById("artTemplate");
-const loader = document.getElementById("loader");
 
-const modal = document.getElementById("adminModal");
-const adminBtn = document.getElementById("adminBtn");
-const closeModal = document.getElementById("closeModal");
-const loginView = document.getElementById("loginView");
-const adminView = document.getElementById("adminView");
-const loginForm = document.getElementById("loginForm");
-const loginCode = document.getElementById("loginCode");
-const loginError = document.getElementById("loginError");
-const logoutBtn = document.getElementById("logoutBtn");
+const $ = id => document.getElementById(id);
 
-const uploadForm = document.getElementById("uploadForm");
-const imageInput = document.getElementById("imageInput");
-const fileName = document.getElementById("fileName");
-const uploadStatus = document.getElementById("uploadStatus");
-const manageList = document.getElementById("manageList");
+const gallery = $("gallery");
+const empty = $("empty");
+const search = $("search");
+const clearSearch = $("clearSearch");
+const searchInfo = $("searchInfo");
+const template = $("artTemplate");
+const loader = $("loader");
+const modal = $("adminModal");
+const adminBtn = $("adminBtn");
+const closeModal = $("closeModal");
+const loginView = $("loginView");
+const adminView = $("adminView");
+const loginForm = $("loginForm");
+const loginCode = $("loginCode");
+const loginError = $("loginError");
+const logoutBtn = $("logoutBtn");
+const uploadForm = $("uploadForm");
+const imageInput = $("imageInput");
+const fileName = $("fileName");
+const uploadStatus = $("uploadStatus");
+const manageList = $("manageList");
 
 let adminCode = sessionStorage.getItem("adminCode") || "";
 let timer;
 
 function escapeHTML(value) {
   return String(value ?? "").replace(/[&<>"']/g, c => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+    "&": "&amp;", "<": "&lt;", ">": "&gt;",
+    '"': "&quot;", "'": "&#039;"
   }[c]));
 }
 
 async function loadArtworks(q = "") {
-  const endpoint = "/api/artworks" + (q ? "?q=" + encodeURIComponent(q) : "");
-
   try {
-    const response = await fetch(endpoint);
-    const artworks = await response.json();
+    const response = await fetch(
+      "/api/artworks" + (q ? "?q=" + encodeURIComponent(q) : "")
+    );
 
+    if (!response.ok) throw new Error("Не удалось загрузить работы");
+
+    const artworks = await response.json();
     gallery.innerHTML = "";
     empty.classList.toggle("hidden", artworks.length > 0);
 
     if (q) {
-      searchInfo.textContent =
-        `Найдено: ${artworks.length} — «${q}»`;
+      searchInfo.textContent = `Найдено: ${artworks.length} — «${q}»`;
       searchInfo.classList.remove("hidden");
     } else {
       searchInfo.classList.add("hidden");
@@ -66,7 +69,19 @@ async function loadArtworks(q = "") {
         description.remove();
       }
 
-      card.style.animationDelay = `${Math.min(index * .055, .6)}s`;
+      card.style.animationDelay = `${Math.min(index * 0.055, 0.6)}s`;
+
+      if (adminCode) {
+        const editButton = document.createElement("button");
+        editButton.type = "button";
+        editButton.className = "art-edit-button";
+        editButton.textContent = "✎";
+        editButton.title = "Управлять публикацией";
+        editButton.setAttribute("aria-label", "Управлять публикацией");
+        editButton.addEventListener("click", () => openAdmin());
+        card.appendChild(editButton);
+      }
+
       gallery.appendChild(node);
     });
   } catch {
@@ -119,19 +134,24 @@ loginForm.addEventListener("submit", async e => {
 
   loginError.textContent = "Проверяю…";
 
-  const response = await fetch("/api/verify", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ code })
-  });
+  try {
+    const response = await fetch("/api/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code })
+    });
 
-  if (response.ok) {
+    if (!response.ok) {
+      loginError.textContent = "Неверный код.";
+      return;
+    }
+
     adminCode = code;
     sessionStorage.setItem("adminCode", code);
-    loginError.textContent = "";
     showAdmin();
-  } else {
-    loginError.textContent = "Неверный код.";
+    loadArtworks(search.value.trim());
+  } catch {
+    loginError.textContent = "Ошибка соединения.";
   }
 });
 
@@ -142,6 +162,7 @@ logoutBtn.addEventListener("click", () => {
   loginView.classList.remove("hidden");
   loginCode.value = "";
   closeAdmin();
+  loadArtworks(search.value.trim());
 });
 
 imageInput.addEventListener("change", () => {
@@ -150,7 +171,6 @@ imageInput.addEventListener("change", () => {
 
 uploadForm.addEventListener("submit", async e => {
   e.preventDefault();
-
   if (!adminCode) return;
 
   uploadStatus.textContent = "Выкладываю…";
@@ -159,35 +179,22 @@ uploadForm.addEventListener("submit", async e => {
   data.append("code", adminCode);
 
   try {
-   
-const response = await fetch("/api/upload", {
-  method: "POST",
-  body: data
-});
+    const response = await fetch("/api/upload", {
+      method: "POST",
+      body: data
+    });
 
-const raw = await response.text();
-let result = {};
+    const result = await response.json().catch(() => ({}));
 
-try {
-  result = JSON.parse(raw);
-} catch {
-  result = { error: raw.slice(0, 200) || "Пустой ответ сервера" };
-}
-
-if (!response.ok) {
-  uploadStatus.textContent =
-    `Ошибка ${response.status}: ${result.error || "Неизвестная ошибка"}`;
-  return;
-}
     if (response.status === 403) {
-      adminCode = "";
-      sessionStorage.removeItem("adminCode");
+      expireAdmin();
       uploadStatus.textContent = "Код больше не действителен.";
       return;
     }
 
     if (!response.ok) {
-      uploadStatus.textContent = result.error || "Ошибка.";
+      uploadStatus.textContent =
+        result.error || `Ошибка ${response.status}.`;
       return;
     }
 
@@ -202,47 +209,169 @@ if (!response.ok) {
   }
 });
 
+function expireAdmin() {
+  adminCode = "";
+  sessionStorage.removeItem("adminCode");
+  closeAdmin();
+  loadArtworks(search.value.trim());
+}
+
 async function loadManageList() {
   if (!adminCode) return;
 
-  const response = await fetch("/api/artworks");
-  if (!response.ok) return;
+  try {
+    const response = await fetch("/api/artworks");
+    if (!response.ok) throw new Error("Ошибка загрузки");
 
-  const artworks = await response.json();
+    const artworks = await response.json();
 
-  manageList.innerHTML = artworks.map(art => `
-    <div class="manage-item">
-      <img src="${escapeHTML(art.image_url)}" alt="">
-      <div class="title">${escapeHTML(art.title)}</div>
-      <button class="delete" data-id="${art.id}">Удалить</button>
-    </div>
-  `).join("");
+    manageList.innerHTML = artworks.map(art => `
+      <div class="manage-item" data-id="${escapeHTML(art.id)}">
+        <img src="${escapeHTML(art.image_url)}" alt="">
+        <div class="manage-item-content">
+          <div class="title">${escapeHTML(art.title)}</div>
+          <div class="manage-actions">
+            <button type="button" class="edit">✎ Редактировать</button>
+            <button type="button" class="delete">🗑 Удалить</button>
+          </div>
+        </div>
+      </div>
+    `).join("");
 
-  manageList.querySelectorAll(".delete").forEach(button => {
-    button.addEventListener("click", async () => {
-      if (!confirm("Удалить эту работу?")) return;
-
-      const response = await fetch(`/api/delete?id=${encodeURIComponent(button.dataset.id)}`, {
-        method: "DELETE",
-        headers: { "x-admin-code": adminCode }
+    manageList.querySelectorAll(".edit").forEach(button => {
+      button.addEventListener("click", () => {
+        const item = button.closest(".manage-item");
+        const art = artworks.find(a => String(a.id) === item.dataset.id);
+        if (art) showEditor(item, art);
       });
+    });
+
+    manageList.querySelectorAll(".delete").forEach(button => {
+      button.addEventListener("click", () => {
+        const item = button.closest(".manage-item");
+        deleteArtwork(item.dataset.id, button);
+      });
+    });
+  } catch {
+    manageList.innerHTML =
+      '<p class="status">Не удалось загрузить список публикаций.</p>';
+  }
+}
+
+function showEditor(item, art) {
+  item.innerHTML = `
+    <form class="edit-form">
+      <label>Название
+        <input name="title" maxlength="120" required
+          value="${escapeHTML(art.title)}">
+      </label>
+      <label>Описание
+        <textarea name="description" maxlength="500">${escapeHTML(
+          art.description || ""
+        )}</textarea>
+      </label>
+      <div class="manage-actions">
+        <button type="submit" class="save">Сохранить</button>
+        <button type="button" class="cancel">Отмена</button>
+        <button type="button" class="delete">🗑 Удалить</button>
+      </div>
+      <div class="edit-status status"></div>
+    </form>
+  `;
+
+  const form = item.querySelector("form");
+  const status = item.querySelector(".edit-status");
+
+  form.querySelector(".cancel").addEventListener("click", loadManageList);
+
+  form.querySelector(".delete").addEventListener("click", () => {
+    deleteArtwork(art.id, form.querySelector(".delete"));
+  });
+
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+
+    const title = form.elements.title.value.trim();
+    const description = form.elements.description.value.trim();
+
+    if (!title) return;
+
+    const save = form.querySelector(".save");
+    save.disabled = true;
+    status.textContent = "Сохраняю…";
+
+    try {
+      const response = await fetch(
+        `/api/edit?id=${encodeURIComponent(art.id)}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "x-admin-code": adminCode
+          },
+          body: JSON.stringify({ title, description })
+        }
+      );
+
+      const result = await response.json().catch(() => ({}));
 
       if (response.status === 403) {
-        adminCode = "";
-        sessionStorage.removeItem("adminCode");
-        closeAdmin();
+        expireAdmin();
+        return;
+      }
+
+      if (!response.ok) {
+        status.textContent = result.error || "Не удалось сохранить.";
+        save.disabled = false;
         return;
       }
 
       await loadManageList();
       await loadArtworks(search.value.trim());
-    });
+    } catch {
+      status.textContent = "Ошибка соединения.";
+      save.disabled = false;
+    }
   });
+}
+
+async function deleteArtwork(id, button) {
+  if (!confirm("Точно удалить эту публикацию?")) return;
+
+  button.disabled = true;
+
+  try {
+    const response = await fetch(
+      `/api/delete?id=${encodeURIComponent(id)}`,
+      {
+        method: "DELETE",
+        headers: { "x-admin-code": adminCode }
+      }
+    );
+
+    const result = await response.json().catch(() => ({}));
+
+    if (response.status === 403) {
+      expireAdmin();
+      return;
+    }
+
+    if (!response.ok) {
+      alert(result.error || "Не удалось удалить публикацию.");
+      button.disabled = false;
+      return;
+    }
+
+    await loadManageList();
+    await loadArtworks(search.value.trim());
+  } catch {
+    alert("Ошибка соединения.");
+    button.disabled = false;
+  }
 }
 
 search.addEventListener("input", () => {
   clearTimeout(timer);
-
   clearSearch.style.display = search.value ? "block" : "none";
 
   timer = setTimeout(() => {
