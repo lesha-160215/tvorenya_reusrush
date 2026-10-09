@@ -465,3 +465,80 @@ label textarea { min-height: 105px; resize: vertical; }
   .modal { padding: 10px; }
   .modal-card { padding: 23px 18px; }
 }
+
+.art-edit-button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 13px;
+  background: rgba(8,8,9,.8);
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(-5px);
+  transition: opacity .25s ease, transform .25s ease,
+    background .25s ease;
+  z-index: 5;
+}
+
+.art-card {
+  position: relative;
+}
+
+.art-card:hover .art-edit-button,
+.art-edit-button:focus-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.art-edit-button:hover {
+  background: #333;
+}
+
+.manage-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.manage-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.manage-actions button {
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 8px 10px;
+  background: rgba(255,255,255,.035);
+  color: #ddd;
+  cursor: pointer;
+  transition: background .25s ease, border-color .25s ease;
+}
+
+.manage-actions button:hover {
+  background: rgba(255,255,255,.09);
+  border-color: rgba(255,255,255,.2);
+}
+
+.manage-actions .delete:hover {
+  background: rgba(217,54,69,.18);
+  border-color: rgba(217,54,69,.5);
+}
+
+.edit-form {
+  width: 100%;
+}
+
+.edit-form label {
+  margin: 10px 0;
+}
+
+.edit-form .status {
+  margin-top: 8px;
+}
