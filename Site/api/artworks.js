@@ -1,3 +1,4 @@
+
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -10,14 +11,18 @@ export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
 
   if (req.method !== "GET") {
-    return res.status(405).json({ error: "Method not allowed" });
+    return res.status(405).json({
+      error: "Method not allowed"
+    });
   }
 
   const q = String(req.query.q || "").trim();
 
   let query = supabase
     .from("artworks")
-    .select("id,title,description,image_path,created_at");
+    .select("id,title,description,image_path,created_at")
+    .order("created_at", { ascending: true })
+    .order("id", { ascending: true });
 
   if (q) {
     query = query.ilike("title", `%${q}%`);
@@ -26,16 +31,12 @@ export default async function handler(req, res) {
   const { data, error } = await query;
 
   if (error) {
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({
+      error: error.message
+    });
   }
 
-  const shuffled = [...(data || [])];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-
-  const result = shuffled.map(item => {
+  const result = (data || []).map(item => {
     const { data: publicUrl } = supabase.storage
       .from("artworks")
       .getPublicUrl(item.image_path);
