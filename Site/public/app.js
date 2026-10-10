@@ -3,10 +3,34 @@ const gallery=$("gallery"),empty=$("empty"),search=$("search"),clearSearch=$("cl
 let lang=location.pathname.toLowerCase().startsWith("/english")?"en":"ru";
 let adminCode=sessionStorage.getItem("adminCode")||"",timer,credits={ru:"",en:""};
 const W={
-ru:{search:"Поиск по названию...",credits:"Создано",admin:"Администрирование",hint:"Введи код, чтобы открыть управление работами.",code:"Код администратора",login:"Войти",wrong:"Неверный код.",checking:"Проверяю…",logout:"Выйти",newWork:"Новая работа",title:"Название",desc:"Описание",titlePh:"Название работы",descPh:"Описание работы",choose:"Выбрать картинку",publish:"Выложить",uploading:"Выкладываю…",published:"Работа опубликована ✓",manage:"Опубликованные работы",edit:"✎ Редактировать",remove:"🗑 Удалить",save:"Сохранить",cancel:"Отмена",saving:"Сохраняю…",confirm:"Точно удалить эту публикацию?",emptyTitle:"Ничего не найдено",emptyText:"Попробуй другое название.",loadError:"Не удалось загрузить работы.",found:"Найдено",editCredits:"Изменить кредиты",creditsSaved:"Кредиты сохранены ✓",language:"English",noCredits:"Кредиты пока не заполнены.",replace:"Заменить картинку (необязательно)",listError:"Не удалось загрузить список публикаций.",connection:"Ошибка соединения.",failed:"Не удалось сохранить."},
-en:{search:"Search by title...",credits:"Credits",admin:"Administration",hint:"Enter the code to manage artworks.",code:"Admin code",login:"Log in",wrong:"Incorrect code.",checking:"Checking…",logout:"Log out",newWork:"New artwork",title:"Title",desc:"Description",titlePh:"Artwork title",descPh:"Artwork description",choose:"Choose image",publish:"Publish",uploading:"Publishing…",published:"Artwork published ✓",manage:"Published artworks",edit:"✎ Edit",remove:"🗑 Delete",save:"Save",cancel:"Cancel",saving:"Saving…",confirm:"Delete this artwork?",emptyTitle:"Nothing found",emptyText:"Try another title.",loadError:"Could not load artworks.",found:"Found",editCredits:"Edit credits",creditsSaved:"Credits saved ✓",language:"Русский",noCredits:"Credits have not been added yet.",replace:"Replace image (optional)",listError:"Could not load publications.",connection:"Connection error.",failed:"Could not save."}
+ru:{search:"Поиск по названию...",credits:"Создано",admin:"Администрирование",hint:"Введи код, чтобы открыть управление работами.",code:"Код администратора",login:"Войти",wrong:"Неверный код.",checking:"Проверяю…",logout:"Выйти",newWork:"Новая работа",title:"Название",desc:"Описание",titlePh:"Название работы",descPh:"Описание работы",choose:"Выбрать картинку",publish:"Выложить",uploading:"Выкладываю…",published:"Работа опубликована ✓",manage:"Опубликованные работы",edit:"✎ Редактировать",remove:"🗑 Удалить",save:"Сохранить",cancel:"Отмена",saving:"Сохраняю…",confirm:"Точно удалить эту публикацию?",emptyTitle:"Ничего не найдено",emptyText:"Попробуй другое название.",loadError:"Не удалось загрузить работы.",found:"Найдено",editCredits:"Изменить кредиты",creditsSaved:"Кредиты сохранены ✓",language:"English",noCredits:"Кредиты пока не заполнены.",replace:"Заменить картинку (необязательно)",listError:"Не удалось загрузить список публикаций.",connection:"Ошибка соединения.",failed:"Не удалось сохранить.",patternHint:"Проведи линию по точкам. Можно оставить пустым.",done:"Готово",patternWrong:"Неверный графический пароль.",patternButton:"Изменить графический пароль",patternEditorHint:"Нарисуй узор из 4–9 точек. Если оставить пустым, пароль будет удалён.",patternSaved:"Графический пароль сохранён."},
+en:{search:"Search by title...",credits:"Credits",admin:"Administration",hint:"Enter the code to manage artworks.",code:"Admin code",login:"Log in",wrong:"Incorrect code.",checking:"Checking…",logout:"Log out",newWork:"New artwork",title:"Title",desc:"Description",titlePh:"Artwork title",descPh:"Artwork description",choose:"Choose image",publish:"Publish",uploading:"Publishing…",published:"Artwork published ✓",manage:"Published artworks",edit:"✎ Edit",remove:"🗑 Delete",save:"Save",cancel:"Cancel",saving:"Saving…",confirm:"Delete this artwork?",emptyTitle:"Nothing found",emptyText:"Try another title.",loadError:"Could not load artworks.",found:"Found",editCredits:"Edit credits",creditsSaved:"Credits saved ✓",language:"Русский",noCredits:"Credits have not been added yet.",replace:"Replace image (optional)",listError:"Could not load publications.",connection:"Connection error.",failed:"Could not save.",patternHint:"Draw a pattern by connecting dots. You can leave it empty.",done:"Done",patternWrong:"Incorrect pattern.",patternButton:"Change pattern password",patternEditorHint:"Draw a pattern using 4–9 dots. Leave it empty to remove the password.",patternSaved:"Pattern password saved."}
 };
 const t=k=>W[lang][k]||W.ru[k]||k, titleOf=a=>lang==="en"?(a.title_en||a.title||""):(a.title||""), descOf=a=>lang==="en"?(a.description_en||a.description||""):(a.description||"");
+function createPatternPad(container){
+ const points=[];let drawing=false;
+ container.innerHTML='<svg class="pattern-lines" viewBox="0 0 300 300" aria-hidden="true"></svg>'+Array.from({length:9},(_,i)=>'<div class="pattern-dot-cell"><span class="pattern-dot" data-point="'+i+'"></span></div>').join('');
+ const svg=container.querySelector("svg");
+ function reset(){points.length=0;drawing=false;container.querySelectorAll(".pattern-dot").forEach(d=>d.classList.remove("active"));svg.innerHTML="";}
+ function addPoint(index){
+  if(index<0||points.includes(index))return;
+  points.push(index);container.querySelector('[data-point="'+index+'"]').classList.add("active");
+  if(points.length>1){const a=points[points.length-2],b=index,line=document.createElementNS("http://www.w3.org/2000/svg","line");line.setAttribute("x1",String((a%3)*100+50));line.setAttribute("y1",String(Math.floor(a/3)*100+50));line.setAttribute("x2",String((b%3)*100+50));line.setAttribute("y2",String(Math.floor(b/3)*100+50));svg.appendChild(line);}
+ }
+ function nearest(e){
+  const r=container.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;let best=-1,dist=Infinity;
+  for(let i=0;i<9;i++){const px=(i%3+.5)*r.width/3,py=(Math.floor(i/3)+.5)*r.height/3,d=Math.hypot(x-px,y-py);if(d<dist){dist=d;best=i;}}
+  return dist<Math.min(r.width,r.height)*.14?best:-1;
+ }
+ container.addEventListener("pointerdown",e=>{e.preventDefault();reset();drawing=true;try{container.setPointerCapture(e.pointerId);}catch{}addPoint(nearest(e));});
+ container.addEventListener("pointermove",e=>{if(!drawing)return;e.preventDefault();addPoint(nearest(e));});
+ const finish=()=>{drawing=false;};
+ container.addEventListener("pointerup",finish);container.addEventListener("pointercancel",finish);
+ return {getPattern:()=>points.join("-"),reset};
+}
+const loginPatternPad=createPatternPad($("loginPattern"));
+const adminPatternPad=createPatternPad($("adminPattern"));
+
 function switchLanguage(){location.href=(lang==="ru"?"/English":"/Russian")+location.search+location.hash;}
 function applyText(){
  document.documentElement.lang=lang;
@@ -22,8 +46,12 @@ function applyText(){
  $("emptyText").textContent=t("emptyText");
  $("loginView").querySelector("h1").textContent=t("admin");
  $("loginView").querySelector(".muted").textContent=t("hint");
- $("loginCode").placeholder=t("code");
- $("loginForm").querySelector('button[type="submit"]').textContent=t("login");
+ $("loginPatternHint").textContent=t("patternHint");
+ $("loginDone").textContent=t("done");
+ $("patternSettingsBtn").textContent=t("patternButton");
+ $("patternEditorHint").textContent=t("patternEditorHint");
+ $("savePattern").textContent=t("done");
+ $("loginForm").querySelector('button[type="submit"]').textContent=t("done");
  $("adminView").querySelector(".admin-title h1").textContent=t("newWork");
  $("logoutBtn").textContent=t("logout");
  $("uploadForm").querySelector(".publish").textContent=t("publish");
@@ -59,9 +87,12 @@ function closeAdmin(){modal.classList.add("hidden");}
 function showAdmin(){$("loginView").classList.add("hidden");$("adminView").classList.remove("hidden");$("loginError").textContent="";loadManageList();}
 function expireAdmin(){adminCode="";sessionStorage.removeItem("adminCode");closeAdmin();loadArtworks(search.value.trim());}
 $("adminBtn").addEventListener("click",openAdmin);$("closeModal").addEventListener("click",closeAdmin);
+$("patternSettingsBtn").addEventListener("click",()=>{$("patternEditor").classList.toggle("hidden");adminPatternPad.reset();$("patternStatus").textContent="";});
+$("savePattern").addEventListener("click",async()=>{const button=$("savePattern"),status=$("patternStatus"),pattern=adminPatternPad.getPattern();button.disabled=true;status.textContent=t("saving");try{const r=await fetch("/api/pattern",{method:"POST",headers:{"Content-Type":"application/json","x-admin-code":adminCode},body:JSON.stringify({pattern})}),j=await r.json().catch(()=>({}));if(r.status===403){expireAdmin();return;}if(!r.ok){status.textContent=j.error||t("failed");return;}adminCode=pattern||"__EMPTY_PATTERN__";sessionStorage.setItem("adminCode",adminCode);status.textContent=t("patternSaved");adminPatternPad.reset();}catch{status.textContent=t("connection");}finally{button.disabled=false;}});
+
 modal.addEventListener("click",e=>{if(e.target===modal)closeAdmin();});$("languageBtn").addEventListener("click",switchLanguage);
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeAdmin();$("creditsModal").classList.add("hidden");}});
-$("loginForm").addEventListener("submit",async e=>{e.preventDefault();const code=$("loginCode").value.trim();if(!code)return;$("loginError").textContent=t("checking");try{const r=await fetch("/api/verify",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code})});if(!r.ok){$("loginError").textContent=t("wrong");return;}adminCode=code;sessionStorage.setItem("adminCode",code);showAdmin();loadArtworks(search.value.trim());loadCredits();}catch{$("loginError").textContent=t("connection");}});
+$("loginForm").addEventListener("submit",async e=>{e.preventDefault();const code=loginPatternPad.getPattern();$("loginDone").disabled=true;$("loginError").textContent=t("checking");try{const r=await fetch("/api/verify",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code})});if(!r.ok){$("loginError").textContent=t("wrong");loginPatternPad.reset();return;}adminCode=code||"__EMPTY_PATTERN__";sessionStorage.setItem("adminCode",adminCode);showAdmin();loadArtworks(search.value.trim());loadCredits();}catch{$("loginError").textContent=t("connection");}finally{$("loginDone").disabled=false;}});
 $("logoutBtn").addEventListener("click",()=>{adminCode="";sessionStorage.removeItem("adminCode");closeAdmin();loadArtworks(search.value.trim());});
 const uploadForm=$("uploadForm"),imageInput=$("imageInput"),fileName=$("fileName"),uploadStatus=$("uploadStatus"),manageList=$("manageList");
 imageInput.addEventListener("change",()=>fileName.textContent=imageInput.files[0]?.name||t("choose"));
@@ -71,7 +102,7 @@ async function loadManageList(){if(!adminCode)return;try{const r=await fetch("/a
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
 function showEditor(item,a){
  const english=lang==="en", active=english?"en":"ru", inactive=english?"ru":"en";
- item.innerHTML='<form class="edit-form" enctype="multipart/form-data">'+
+ item.innerHTML='<form class="edit-form" enctype="multipart/form-data"><input type="hidden" name="language" value="'+lang+'">'+
  '<div class="language-input"><label>'+t("title")+' <span class="field-language">'+(english?'EN':'RU')+'</span><input name="title" data-edit="title" data-lang="ru" maxlength="120" required value="'+esc(a.title||'')+'" '+(english?'hidden':'')+'><input name="title_en" data-edit="title" data-lang="en" maxlength="120" placeholder="Artwork title" value="'+esc(a.title_en||'')+'" '+(!english?'hidden':'')+'></label></div>'+
  '<div class="language-input"><label>'+t("desc")+' <span class="field-language">'+(english?'EN':'RU')+'</span><textarea name="description" data-edit="description" data-lang="ru" maxlength="500" '+(english?'hidden':'')+'>'+esc(a.description||'')+'</textarea><textarea name="description_en" data-edit="description" data-lang="en" maxlength="500" placeholder="Artwork description" '+(!english?'hidden':'')+'>'+esc(a.description_en||'')+'</textarea></label></div>'+
  '<label class="file-picker"><input name="image" type="file" accept="image/png,image/jpeg,image/webp,image/gif"><span>'+t("replace")+'</span></label>'+
