@@ -40,7 +40,7 @@ function applyText(){
  $("languageBtn").textContent=t("language");
  $("creditsBtn").textContent=t("credits");
  $("submitTicketBtn").textContent=t("ticketBtn");
- $("ticketHeading").textContent=t("ticketBtn");$("ticketIntro").textContent=t("ticketIntro");$("ticketTitleLabel").childNodes[0].textContent=t("ticketTitle");$("ticketDescLabel").childNodes[0].textContent=t("ticketDesc");$("ticketSend").textContent=t("ticketSend");$("ticketFileName").textContent=$("ticketImage").files[0]?.name||t("ticketChoose");$("ticketsList").previousElementSibling.textContent=t("ticketsHeading");
+ $("ticketHeading").textContent=t("ticketBtn");$("ticketLanguage").value=lang;$("ticketTitleLabel").childNodes[0].textContent=t("ticketTitle");$("ticketDescLabel").childNodes[0].textContent=t("ticketDesc");$("ticketIntro").textContent=t("ticketIntro");$("ticketTitleLabel").childNodes[0].textContent=t("ticketTitle");$("ticketDescLabel").childNodes[0].textContent=t("ticketDesc");$("ticketSend").textContent=t("ticketSend");$("ticketFileName").textContent=$("ticketImage").files[0]?.name||t("ticketChoose");$("ticketsList").previousElementSibling.textContent=t("ticketsHeading");
  $("creditsHeading").textContent=t("credits");
  $("editCreditsBtn").textContent=t("editCredits");
  $("saveCredits").textContent=t("save");
