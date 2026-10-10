@@ -1,5 +1,22 @@
-
 {
   "version": 2,
-  "outputDirectory": "public"
+  "outputDirectory": "public",
+  "rewrites": [
+    {
+      "source": "/English",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/English/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/Russian",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/Russian/",
+      "destination": "/index.html"
+    }
+  ]
 }
