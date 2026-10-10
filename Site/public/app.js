@@ -40,7 +40,7 @@ function applyText(){
  $("languageBtn").textContent=t("language");
  $("creditsBtn").textContent=t("credits");
  $("submitTicketBtn").textContent=t("ticketBtn");
- $("ticketHeading").textContent=t("ticketBtn");$("ticketLanguage").value=lang;$("ticketTitleLabel").childNodes[0].textContent=t("ticketTitle");$("ticketDescLabel").childNodes[0].textContent=t("ticketDesc");$("ticketIntro").textContent=t("ticketIntro");$("ticketSend").textContent=t("ticketSend");$("ticketFileName").textContent=$("ticketImage").files[0]?.name||t("ticketChoose");$("ticketsList").previousElementSibling.textContent=t("ticketsHeading");
+ $("ticketHeading").textContent=t("ticketBtn");$("ticketLanguage").value=lang;$("ticketTitleLabel").childNodes[0].textContent=t("ticketTitle");$("ticketDescLabel").childNodes[0].textContent=t("ticketDesc");$("ticketIntro").textContent=t("ticketIntro");$("ticketSend").textContent=t("ticketSend");$("ticketFileName").textContent=$("ticketImage").files[0]?.name||t("ticketChoose");
  $("creditsHeading").textContent=t("credits");
  $("editCreditsBtn").textContent=t("editCredits");
  $("saveCredits").textContent=t("save");
@@ -60,7 +60,7 @@ function applyText(){
  $("adminView").querySelector(".admin-title h1").textContent=t("newWork");
  $("logoutBtn").textContent=t("logout");
  $("uploadForm").querySelector(".publish").textContent=t("publish");
- document.querySelector(".manage-heading").textContent=t("manage");
+ document.querySelectorAll(".manage-heading")[0].textContent=t("ticketsHeading");document.querySelectorAll(".manage-heading")[1].textContent=t("manage");
  uploadForm.elements.title.placeholder=t("titlePh");
  uploadForm.elements.title_en.placeholder="Artwork title";
  uploadForm.elements.description.placeholder=t("descPh");
