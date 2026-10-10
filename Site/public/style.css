@@ -585,3 +585,7 @@ label textarea { min-height: 105px; resize: vertical; }
 .like-button.liked .like-heart{color:#ff607d}
 .like-button:disabled{opacity:.6;cursor:wait}
 .like-button:focus-visible{outline:2px solid rgba(255,255,255,.5);outline-offset:3px}
+
+/* Public artwork submissions and admin review tickets */
+.ticket-card{width:min(560px,100%)}.ticket-card label{margin:16px 0}.ticket-card form button[type="submit"]{width:100%;min-height:44px;border:0;border-radius:12px;background:#fff;color:#080809;font-weight:800;cursor:pointer}.ticket-card form button:disabled{opacity:.6;cursor:wait}.ticket-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}.ticket-item img{width:86px;height:86px;object-fit:cover;border-radius:10px;background:#101012}.ticket-content{flex:1;min-width:0}.ticket-content strong{overflow-wrap:anywhere}.ticket-content p{margin:6px 0;color:var(--muted);font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}.ticket-item .manage-actions{margin-top:10px}.ticket-item .manage-actions button{font-size:12px}.ticket-item .ticket-approve{background:rgba(255,255,255,.1)}.ticket-item .ticket-reject{color:#f0a0a0}
+@media(max-width:760px){.socials{gap:12px;flex-wrap:wrap}.ticket-item img{width:68px;height:68px}}
