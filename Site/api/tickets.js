@@ -26,9 +26,13 @@ export default async function handler(req, res) {
   let temp;
   try {
    const { fields, files } = await parseForm(req);
-   const title = val(fields.title).trim(), description = val(fields.description).trim();
+   const titleInput = val(fields.title).trim(), descriptionInput = val(fields.description).trim(), language = val(fields.language) === "en" ? "en" : "ru";
+   const title = language === "ru" ? titleInput : await translateOnce(titleInput, "en", "ru");
+   const title_en = language === "en" ? titleInput : await translateOnce(titleInput, "ru", "en");
+   const description = language === "ru" ? descriptionInput : await translateOnce(descriptionInput, "en", "ru");
+   const description_en = language === "en" ? descriptionInput : await translateOnce(descriptionInput, "ru", "en");
    const raw = files.image, file = Array.isArray(raw) ? raw[0] : raw;
-   if (!title || title.length > 120 || description.length > 500 || !file) return res.status(400).json({error:"Укажи название (до 120 символов), описание (до 500) и картинку."});
+   if (!titleInput || titleInput.length > 120 || descriptionInput.length > 500 || !file) return res.status(400).json({error:"Укажи название (до 120 символов), описание (до 500) и картинку."});
    temp = file.filepath;
    const ext = path.extname(file.originalFilename || "").toLowerCase();
    if (!new Set([".png",".jpg",".jpeg",".webp",".gif"]).has(ext)) return res.status(400).json({error:"Разрешены PNG, JPG, JPEG, WEBP и GIF."});
@@ -36,7 +40,7 @@ export default async function handler(req, res) {
    const buffer = await fs.readFile(file.filepath);
    const { error: uploadError } = await supabase.storage.from("artworks").upload(image_path, buffer, {contentType:file.mimetype || "application/octet-stream", upsert:false});
    if (uploadError) return res.status(500).json({error:uploadError.message});
-   const { data, error } = await supabase.from("artwork_tickets").insert({title,description,image_path}).select("id").single();
+   const { data, error } = await supabase.from("artwork_tickets").insert({title,title_en,description,description_en,image_path}).select("id").single();
    if (error) { await supabase.storage.from("artworks").remove([image_path]); return res.status(500).json({error:/artwork_tickets|does not exist|schema cache/i.test(error.message || "") ? "Сначала выполни SQL-файл tickets.sql в Supabase." : error.message}); }
    return res.status(200).json({ok:true,id:data.id});
   } catch(e) { return res.status(500).json({error:e.message || "Ошибка сервера."}); }
@@ -62,8 +66,8 @@ export default async function handler(req, res) {
     await supabase.storage.from("artworks").remove([ticket.image_path]);
     return res.status(200).json({ok:true});
    }
-   const title_en=await translateOnce(ticket.title,"ru","en");
-   const description_en=ticket.description ? await translateOnce(ticket.description,"ru","en") : "";
+   const title_en=ticket.title_en || await translateOnce(ticket.title,"ru","en");
+   const description_en=ticket.description_en || (ticket.description ? await translateOnce(ticket.description,"ru","en") : "");
    const {data:art,error:insertError}=await supabase.from("artworks").insert({title:ticket.title,title_en,description:ticket.description,description_en,image_path:ticket.image_path}).select("id").single();
    if(insertError)return res.status(500).json({error:insertError.message});
    const {error:updateError}=await supabase.from("artwork_tickets").update({status:"approved",reviewed_at:new Date().toISOString(),artwork_id:art.id}).eq("id",id).eq("status","pending");
