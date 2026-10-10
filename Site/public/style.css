@@ -554,7 +554,9 @@ label textarea { min-height: 105px; resize: vertical; }
 .credits-text{color:#bcbcc4;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere;margin:16px 0 22px}
 .credits-card #creditsEditor{margin-top:22px}.credits-card textarea{min-height:100px}
 @media(max-width:760px){.top-actions{grid-column:2;grid-row:1;gap:5px}.admin-trigger{justify-self:auto}.language-button{padding:7px 8px;font-size:12px}.socials{grid-column:1/-1}.language-input{gap:5px}.globe-toggle{flex-basis:38px}}
-.translate-button{flex:0 0 auto;min-height:42px;margin-bottom:15px;padding:0 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface, #171717);color:var(--text, #eee);cursor:pointer;font:inherit;font-size:13px;white-space:nowrap;transition:background .2s ease,opacity .2s ease}
-.translate-button:hover{background:var(--line)}
-.translate-button:disabled{opacity:.55;cursor:wait}
-@media(max-width:760px){.translate-button{padding:0 8px;font-size:12px;min-height:38px}}
+
+/* Compact language and translation controls; do not inherit full-width submit styles. */
+.modal form .language-input{display:flex;align-items:flex-end;gap:8px;min-width:0}
+.modal form .language-input label{flex:1;min-width:0}
+.modal form .language-input .globe-toggle{width:42px;min-width:42px;height:42px;padding:0;flex:0 0 42px;border:1px solid var(--line);border-radius:10px;background:#202024;color:#fff;cursor:pointer}
+@media(max-width:520px){.modal form .language-input{gap:5px}.modal form .language-input .globe-toggle{width:36px;min-width:36px;flex-basis:36px}}
