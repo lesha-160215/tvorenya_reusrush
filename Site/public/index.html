@@ -64,6 +64,7 @@
       <h1 id="ticketHeading">Предложить арт</h1>
       <p id="ticketIntro" class="muted">Отправь работу на рассмотрение администрации. Она появится в галерее только после одобрения.</p>
       <form id="ticketForm" enctype="multipart/form-data">
+        <input type="hidden" name="language" id="ticketLanguage" value="ru">
         <label id="ticketTitleLabel">Название<input name="title" maxlength="120" required placeholder="Название работы"></label>
         <label id="ticketDescLabel">Описание<textarea name="description" maxlength="500" placeholder="Расскажи о своей работе"></textarea></label>
         <label class="file-picker"><input id="ticketImage" name="image" type="file" accept="image/png,image/jpeg,image/webp,image/gif" required><span id="ticketFileName">Выбрать картинку</span></label>
