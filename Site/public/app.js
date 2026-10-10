@@ -83,7 +83,7 @@ async function loadArtworks(q=""){
   arts.forEach((a,i)=>{const node=template.content.cloneNode(true),card=node.querySelector(".art-card"),img=node.querySelector("img"),h=node.querySelector("h2"),p=node.querySelector("p");img.src=a.image_url;img.alt=titleOf(a);h.textContent=titleOf(a);const d=descOf(a);if(d)p.textContent=d;else p.remove();card.style.animationDelay=Math.min(i*.055,.6)+"s";if(adminCode){const b=document.createElement("button");b.type="button";b.className="art-edit-button";b.textContent="✎";b.title=t("edit");b.addEventListener("click",openAdmin);card.appendChild(b);}gallery.appendChild(node);});
  }catch{$("emptyTitle").textContent=t("loadError");$("emptyText").textContent="";empty.classList.remove("hidden");}
 }
-function openAdmin(){modal.classList.remove("hidden");if(adminCode)showAdmin();else{$("loginView").classList.remove("hidden");$("adminView").classList.add("hidden");$("loginDone").focus();}}
+function openAdmin(){modal.classList.remove("hidden");if(adminCode)showAdmin();else{loginPatternPad.reset();$("loginView").classList.remove("hidden");$("adminView").classList.add("hidden");$("loginDone").focus();}}
 function closeAdmin(){modal.classList.add("hidden");}
 function showAdmin(){$("loginView").classList.add("hidden");$("adminView").classList.remove("hidden");$("loginError").textContent="";loadManageList();}
 function expireAdmin(){adminCode="";sessionStorage.removeItem("adminCode");closeAdmin();loadArtworks(search.value.trim());}
