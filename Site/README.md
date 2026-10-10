@@ -16,8 +16,6 @@ SUPABASE_URL
 SUPABASE_SERVICE_ROLE_KEY
 ADMIN_CODE
 
-ADMIN_CODE можно поставить на любое значение. Для твоей задумки можно использовать:
-9i63nck
 
 Никогда не публикуй SUPABASE_SERVICE_ROLE_KEY в браузерном JavaScript.
 
