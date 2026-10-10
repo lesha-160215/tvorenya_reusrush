@@ -13,10 +13,9 @@
   </div>
 
   <header class="topbar">
-    <nav class="socials" aria-label="Ссылки">
+    <nav class="socials" aria-label="Links">
       <a href="https://www.donationalerts.com/r/reusrush" target="_blank" rel="noopener">Donate</a>
-      <a href="https://www.youtube.com/@reusrush" target="_blank" rel="noopener">YouTube</a>
-      <a href="https://www.twitch.tv/reusrush" target="_blank" rel="noopener">Twitch</a>
+      <button id="creditsBtn" class="nav-link" type="button">Создано</button>
     </nav>
 
     <div class="search-wrap">
@@ -24,7 +23,10 @@
       <button id="clearSearch" aria-label="Очистить">×</button>
     </div>
 
-    <button id="adminBtn" class="admin-trigger" aria-label="Открыть вход">⌘</button>
+    <div class="top-actions">
+      <button id="languageBtn" class="secondary language-button" type="button">English</button>
+      <button id="adminBtn" class="admin-trigger" aria-label="Открыть вход">⌘</button>
+    </div>
   </header>
 
   <main>
@@ -37,6 +39,22 @@
       <p>Попробуй другое название.</p>
     </section>
   </main>
+
+  <div id="creditsModal" class="modal hidden">
+    <div class="modal-card credits-card">
+      <button id="closeCredits" class="close" aria-label="Close">×</button>
+      <span class="eyebrow">CREDITS</span>
+      <h1 id="creditsHeading">Создано</h1>
+      <div id="creditsText" class="credits-text"></div>
+      <button id="editCreditsBtn" class="secondary hidden" type="button">Изменить кредиты</button>
+      <div id="creditsEditor" class="hidden">
+        <label>Текст на русском<textarea id="creditsRuInput" maxlength="5000"></textarea></label>
+        <label>Text in English<textarea id="creditsEnInput" maxlength="5000"></textarea></label>
+        <button id="saveCredits" type="button">Сохранить</button>
+        <div id="creditsStatus" class="status"></div>
+      </div>
+    </div>
+  </div>
 
   <div id="adminModal" class="modal hidden">
     <div class="modal-card">
@@ -64,13 +82,20 @@
         </div>
 
         <form id="uploadForm">
-          <label>Название
-            <input name="title" maxlength="120" required placeholder="Название работы">
-          </label>
-
-          <label>Описание
-            <textarea name="description" maxlength="500" placeholder="Описание работы"></textarea>
-          </label>
+          <div class="language-input">
+            <label>Название <span class="field-language" data-field-language="title">RU</span>
+              <input name="title" data-lang-field="title" data-lang="ru" maxlength="120" required placeholder="Название работы">
+              <input name="title_en" data-lang-field="title" data-lang="en" maxlength="120" placeholder="Artwork title" hidden>
+            </label>
+            <button type="button" class="globe-toggle" data-toggle-language="title" aria-label="Switch title language">🌐</button>
+          </div>
+          <div class="language-input">
+            <label>Описание <span class="field-language" data-field-language="description">RU</span>
+              <textarea name="description" data-lang-field="description" data-lang="ru" maxlength="500" placeholder="Описание работы"></textarea>
+              <textarea name="description_en" data-lang-field="description" data-lang="en" maxlength="500" placeholder="Artwork description" hidden></textarea>
+            </label>
+            <button type="button" class="globe-toggle" data-toggle-language="description" aria-label="Switch description language">🌐</button>
+          </div>
 
           <label class="file-picker">
             <input id="imageInput" name="image" type="file"
