@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { isAdminPattern } from "./_admin.js";
+import { isAdminPattern } from "../lib/admin.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
