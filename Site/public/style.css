@@ -542,3 +542,15 @@ label textarea { min-height: 105px; resize: vertical; }
 .edit-form .status {
   margin-top: 8px;
 }
+
+/* Language and credits */
+.top-actions{justify-self:end;display:flex;align-items:center;gap:10px}
+.nav-link{border:0;background:transparent;color:#a4a4ad;font:inherit;font-size:13px;cursor:pointer;padding:0;transition:color .25s ease}
+.nav-link:hover{color:#fff}.language-button{white-space:nowrap}
+.language-input{display:flex;align-items:flex-end;gap:9px}.language-input label{flex:1;min-width:0}
+.globe-toggle{flex:0 0 42px;height:42px;margin-bottom:15px;border:1px solid var(--line);border-radius:12px;background:#111;color:#ddd;cursor:pointer}
+.field-language{color:#777;font-size:10px;margin-left:6px;letter-spacing:.08em}
+[hidden]{display:none!important}
+.credits-text{color:#bcbcc4;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere;margin:16px 0 22px}
+.credits-card #creditsEditor{margin-top:22px}.credits-card textarea{min-height:100px}
+@media(max-width:760px){.top-actions{grid-column:2;grid-row:1;gap:5px}.admin-trigger{justify-self:auto}.language-button{padding:7px 8px;font-size:12px}.socials{grid-column:1/-1}.language-input{gap:5px}.globe-toggle{flex-basis:38px}}
