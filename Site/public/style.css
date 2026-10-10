@@ -554,3 +554,7 @@ label textarea { min-height: 105px; resize: vertical; }
 .credits-text{color:#bcbcc4;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere;margin:16px 0 22px}
 .credits-card #creditsEditor{margin-top:22px}.credits-card textarea{min-height:100px}
 @media(max-width:760px){.top-actions{grid-column:2;grid-row:1;gap:5px}.admin-trigger{justify-self:auto}.language-button{padding:7px 8px;font-size:12px}.socials{grid-column:1/-1}.language-input{gap:5px}.globe-toggle{flex-basis:38px}}
+.translate-button{flex:0 0 auto;min-height:42px;margin-bottom:15px;padding:0 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface, #171717);color:var(--text, #eee);cursor:pointer;font:inherit;font-size:13px;white-space:nowrap;transition:background .2s ease,opacity .2s ease}
+.translate-button:hover{background:var(--line)}
+.translate-button:disabled{opacity:.55;cursor:wait}
+@media(max-width:760px){.translate-button{padding:0 8px;font-size:12px;min-height:38px}}
