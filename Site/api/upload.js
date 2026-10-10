@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import formidable from "formidable";import fs from "fs/promises";import path from "path";import crypto from "crypto";import { isAdminPattern } from "./_admin.js";
+import formidable from "formidable";import fs from "fs/promises";import path from "path";import crypto from "crypto";import { isAdminPattern } from "../lib/admin.js";
 export const config={api:{bodyParser:false}};
 const supabase=createClient(process.env.SUPABASE_URL,process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false}});
 function parseForm(req){const form=formidable({multiples:false,maxFileSize:15*1024*1024,keepExtensions:true});return new Promise((resolve,reject)=>form.parse(req,(err,fields,files)=>err?reject(err):resolve({fields,files})));}
