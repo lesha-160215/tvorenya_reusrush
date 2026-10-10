@@ -16,6 +16,8 @@ SUPABASE_URL
 SUPABASE_SERVICE_ROLE_KEY
 ADMIN_CODE
 
+Задай `ADMIN_CODE` как приватное значение только в Environment Variables проекта Vercel. Не добавляй его в README или исходный код.
+
 
 Никогда не публикуй SUPABASE_SERVICE_ROLE_KEY в браузерном JavaScript.
 
