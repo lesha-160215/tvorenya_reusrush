@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { isAdminPattern } from "./_admin.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -14,7 +15,7 @@ export default async function handler(req, res) {
   try {
     const code = String(req.headers["x-admin-code"] || "");
 
-    if (!process.env.ADMIN_CODE || code !== process.env.ADMIN_CODE) {
+    if (!await isAdminPattern(code)) {
       return res.status(403).json({ error: "Нет доступа." });
     }
 
