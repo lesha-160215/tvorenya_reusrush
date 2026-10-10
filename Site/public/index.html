@@ -66,8 +66,9 @@
         <p class="muted">Введи код, чтобы открыть управление работами.</p>
 
         <form id="loginForm">
-          <input id="loginCode" type="password" placeholder="Код администратора" autocomplete="off">
-          <button type="submit">Войти</button>
+          <p id="loginPatternHint" class="pattern-help">Проведи линию по 4–9 точкам.</p>
+          <div id="loginPattern" class="pattern-pad" role="group" aria-label="Графический пароль"></div>
+          <button id="loginDone" type="submit">Готово</button>
           <div id="loginError" class="error"></div>
         </form>
       </div>
@@ -79,6 +80,16 @@
             <h1>Новая работа</h1>
           </div>
           <button id="logoutBtn" class="secondary">Выйти</button>
+        </div>
+
+        <div class="pattern-settings">
+          <button id="patternSettingsBtn" class="secondary" type="button">Изменить графический пароль</button>
+          <div id="patternEditor" class="hidden">
+            <p id="patternEditorHint" class="pattern-help">Нарисуй новый узор. Если не рисовать точки, пароль будет очищен.</p>
+            <div id="adminPattern" class="pattern-pad" role="group" aria-label="Новый графический пароль"></div>
+            <button id="savePattern" type="button">Готово</button>
+            <div id="patternStatus" class="status"></div>
+          </div>
         </div>
 
         <form id="uploadForm">
