@@ -560,3 +560,6 @@ label textarea { min-height: 105px; resize: vertical; }
 .modal form .language-input label{flex:1;min-width:0}
 .modal form .language-input .globe-toggle{width:42px;min-width:42px;height:42px;padding:0;flex:0 0 42px;border:1px solid var(--line);border-radius:10px;background:#202024;color:#fff;cursor:pointer}
 @media(max-width:520px){.modal form .language-input{gap:5px}.modal form .language-input .globe-toggle{width:36px;min-width:36px;flex-basis:36px}}
+
+/* Language-specific editor fields: hidden means truly hidden, regardless of form layout. */
+[hidden]{display:none !important}

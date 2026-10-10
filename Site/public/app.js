@@ -32,11 +32,16 @@ function applyText(){
  uploadForm.elements.title_en.placeholder="Artwork title";
  uploadForm.elements.description.placeholder=t("descPh");
  uploadForm.elements.description_en.placeholder="Artwork description";
+ uploadForm.querySelectorAll("[data-lang-field]").forEach(field=>{field.hidden=(field.dataset.lang!==lang);});
  $("fileName").textContent=imageInput.files[0]?.name||t("choose");
  document.querySelectorAll("[data-field-language]").forEach(el=>{
-   const ru=el.closest(".language-input")?.querySelector('[data-lang="ru"]');
-   const en=el.closest(".language-input")?.querySelector('[data-lang="en"]');
-   el.textContent=(en&&!en.hidden)?"EN":"RU";
+   const wrap=el.closest(".language-input");
+   const ru=wrap?.querySelector('[data-lang-field][data-lang="ru"]');
+   const en=wrap?.querySelector('[data-lang-field][data-lang="en"]');
+   const showEnglish=lang==="en";
+   if(ru) ru.hidden=showEnglish;
+   if(en) en.hidden=!showEnglish;
+   el.textContent=showEnglish?"EN":"RU";
  });
 }
 
@@ -60,22 +65,23 @@ $("loginForm").addEventListener("submit",async e=>{e.preventDefault();const code
 $("logoutBtn").addEventListener("click",()=>{adminCode="";sessionStorage.removeItem("adminCode");closeAdmin();loadArtworks(search.value.trim());});
 const uploadForm=$("uploadForm"),imageInput=$("imageInput"),fileName=$("fileName"),uploadStatus=$("uploadStatus"),manageList=$("manageList");
 imageInput.addEventListener("change",()=>fileName.textContent=imageInput.files[0]?.name||t("choose"));
-document.querySelectorAll("[data-toggle-language]").forEach(b=>b.addEventListener("click",()=>{const f=b.dataset.toggleLanguage,ru=document.querySelector('[data-lang-field="'+f+'"][data-lang="ru"]'),en=document.querySelector('[data-lang-field="'+f+'"][data-lang="en"]'),showEn=en.hidden;ru.hidden=!showEn;en.hidden=showEn;document.querySelector('[data-field-language="'+f+'"]').textContent=showEn?"EN":"RU";(showEn?en:ru).focus();}));
-uploadForm.addEventListener("submit",async e=>{e.preventDefault();if(!adminCode)return;uploadStatus.textContent=t("uploading");const fd=new FormData(uploadForm);fd.append("code",adminCode);try{const r=await fetch("/api/upload",{method:"POST",body:fd}),j=await r.json().catch(()=>({}));if(r.status===403){expireAdmin();return;}if(!r.ok){uploadStatus.textContent=j.error||t("failed");return;}uploadForm.reset();fileName.textContent=t("choose");document.querySelectorAll("[data-toggle-language]").forEach(b=>{const f=b.dataset.toggleLanguage;document.querySelector('[data-lang-field="'+f+'"][data-lang="ru"]').hidden=false;document.querySelector('[data-lang-field="'+f+'"][data-lang="en"]').hidden=true;document.querySelector('[data-field-language="'+f+'"]').textContent="RU";});uploadStatus.textContent=t("published");await loadArtworks(search.value.trim());await loadManageList();}catch{uploadStatus.textContent=t("connection");}});
+
+uploadForm.addEventListener("submit",async e=>{e.preventDefault();if(!adminCode)return;uploadStatus.textContent=t("uploading");const fd=new FormData(uploadForm);fd.append("code",adminCode);try{const r=await fetch("/api/upload",{method:"POST",body:fd}),j=await r.json().catch(()=>({}));if(r.status===403){expireAdmin();return;}if(!r.ok){uploadStatus.textContent=j.error||t("failed");return;}uploadForm.reset();fileName.textContent=t("choose");uploadForm.querySelectorAll("[data-lang-field]").forEach(field=>{field.hidden=(field.dataset.lang!==lang);});uploadStatus.textContent=t("published");await loadArtworks(search.value.trim());await loadManageList();}catch{uploadStatus.textContent=t("connection");}});
 async function loadManageList(){if(!adminCode)return;try{const r=await fetch("/api/artworks",{cache:"no-store"});if(!r.ok)throw Error();const arts=await r.json();manageList.innerHTML=arts.map(a=>'<div class="manage-item" data-id="'+esc(a.id)+'"><img src="'+esc(a.image_url)+'" alt=""><div class="manage-item-content"><div class="title">'+esc(titleOf(a))+'</div><div class="manage-actions"><button type="button" class="edit">'+esc(t("edit"))+'</button><button type="button" class="delete">'+esc(t("remove"))+'</button></div></div></div>').join("");manageList.querySelectorAll(".edit").forEach(b=>b.addEventListener("click",()=>{const item=b.closest(".manage-item"),a=arts.find(x=>String(x.id)===item.dataset.id);if(a)showEditor(item,a);}));manageList.querySelectorAll(".delete").forEach(b=>b.addEventListener("click",()=>deleteArtwork(b.closest(".manage-item").dataset.id,b)));}catch{manageList.innerHTML='<p class="status">'+t("listError")+'</p>';}}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
 function showEditor(item,a){
+ const english=lang==="en", active=english?"en":"ru", inactive=english?"ru":"en";
  item.innerHTML='<form class="edit-form" enctype="multipart/form-data">'+
- '<div class="language-input"><label>'+t("title")+' <span class="field-language">RU</span><input name="title" data-edit="title" data-lang="ru" maxlength="120" required value="'+esc(a.title||"")+'"><input name="title_en" data-edit="title" data-lang="en" maxlength="120" placeholder="Artwork title" value="'+esc(a.title_en||"")+'" hidden></label><button type="button" class="globe-toggle" data-toggle="title">🌐</button></div>'+
- '<div class="language-input"><label>'+t("desc")+' <span class="field-language">RU</span><textarea name="description" data-edit="description" data-lang="ru" maxlength="500">'+esc(a.description||"")+'</textarea><textarea name="description_en" data-edit="description" data-lang="en" maxlength="500" placeholder="Artwork description" hidden>'+esc(a.description_en||"")+'</textarea></label><button type="button" class="globe-toggle" data-toggle="description">🌐</button></div>'+
+ '<div class="language-input"><label>'+t("title")+' <span class="field-language">'+(english?'EN':'RU')+'</span><input name="title" data-edit="title" data-lang="ru" maxlength="120" required value="'+esc(a.title||'')+'" '+(english?'hidden':'')+'><input name="title_en" data-edit="title" data-lang="en" maxlength="120" placeholder="Artwork title" value="'+esc(a.title_en||'')+'" '+(!english?'hidden':'')+'></label></div>'+
+ '<div class="language-input"><label>'+t("desc")+' <span class="field-language">'+(english?'EN':'RU')+'</span><textarea name="description" data-edit="description" data-lang="ru" maxlength="500" '+(english?'hidden':'')+'>'+esc(a.description||'')+'</textarea><textarea name="description_en" data-edit="description" data-lang="en" maxlength="500" placeholder="Artwork description" '+(!english?'hidden':'')+'>'+esc(a.description_en||'')+'</textarea></label></div>'+
  '<label class="file-picker"><input name="image" type="file" accept="image/png,image/jpeg,image/webp,image/gif"><span>'+t("replace")+'</span></label>'+
  '<div class="manage-actions"><button type="submit" class="save">'+t("save")+'</button><button type="button" class="cancel">'+t("cancel")+'</button><button type="button" class="delete">'+t("remove")+'</button></div><div class="edit-status status"></div></form>';
  const form=item.querySelector("form"),status=item.querySelector(".edit-status");
  form.querySelector('input[type="file"]').addEventListener("change",e=>{if(e.target.files[0])e.target.nextElementSibling.textContent=e.target.files[0].name;});
  form.querySelector(".cancel").addEventListener("click",loadManageList);form.querySelector(".delete").addEventListener("click",()=>deleteArtwork(a.id,form.querySelector(".delete")));
- form.querySelectorAll("[data-toggle]").forEach(b=>b.addEventListener("click",()=>{const f=b.dataset.toggle,ru=form.querySelector('[data-edit="'+f+'"][data-lang="ru"]'),en=form.querySelector('[data-edit="'+f+'"][data-lang="en"]'),showEn=en.hidden;ru.hidden=!showEn;en.hidden=showEn;b.closest(".language-input").querySelector(".field-language").textContent=showEn?"EN":"RU";}));
  form.addEventListener("submit",async e=>{e.preventDefault();const save=form.querySelector(".save");save.disabled=true;status.textContent=t("saving");const fd=new FormData(form);try{const r=await fetch("/api/edit?id="+encodeURIComponent(a.id),{method:"PATCH",headers:{"x-admin-code":adminCode},body:fd}),j=await r.json().catch(()=>({}));if(r.status===403){expireAdmin();return;}if(!r.ok){status.textContent=j.error||t("failed");save.disabled=false;return;}await loadManageList();await loadArtworks(search.value.trim());}catch{status.textContent=t("connection");save.disabled=false;}});
 }
+
 async function deleteArtwork(id,b){if(!confirm(t("confirm")))return;b.disabled=true;try{const r=await fetch("/api/delete?id="+encodeURIComponent(id),{method:"DELETE",headers:{"x-admin-code":adminCode}}),j=await r.json().catch(()=>({}));if(r.status===403){expireAdmin();return;}if(!r.ok){alert(j.error||t("failed"));b.disabled=false;return;}await loadManageList();await loadArtworks(search.value.trim());}catch{alert(t("connection"));b.disabled=false;}}
 search.addEventListener("input",()=>{clearTimeout(timer);clearSearch.style.display=search.value?"block":"none";timer=setTimeout(()=>loadArtworks(search.value.trim()),220);});
 clearSearch.addEventListener("click",()=>{search.value="";clearSearch.style.display="none";loadArtworks();search.focus();});
