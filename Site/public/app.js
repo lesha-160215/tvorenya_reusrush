@@ -1,392 +1,64 @@
-
 const $ = id => document.getElementById(id);
-
-const gallery = $("gallery");
-const empty = $("empty");
-const search = $("search");
-const clearSearch = $("clearSearch");
-const searchInfo = $("searchInfo");
-const template = $("artTemplate");
-const loader = $("loader");
-const modal = $("adminModal");
-const adminBtn = $("adminBtn");
-const closeModal = $("closeModal");
-const loginView = $("loginView");
-const adminView = $("adminView");
-const loginForm = $("loginForm");
-const loginCode = $("loginCode");
-const loginError = $("loginError");
-const logoutBtn = $("logoutBtn");
-const uploadForm = $("uploadForm");
-const imageInput = $("imageInput");
-const fileName = $("fileName");
-const uploadStatus = $("uploadStatus");
-const manageList = $("manageList");
-
-let adminCode = sessionStorage.getItem("adminCode") || "";
-let timer;
-
-function escapeHTML(value) {
-  return String(value ?? "").replace(/[&<>"']/g, c => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;",
-    '"': "&quot;", "'": "&#039;"
-  }[c]));
+const gallery=$("gallery"),empty=$("empty"),search=$("search"),clearSearch=$("clearSearch"),searchInfo=$("searchInfo"),template=$("artTemplate"),loader=$("loader"),modal=$("adminModal");
+let lang=location.pathname.toLowerCase().startsWith("/english")?"en":"ru";
+let adminCode=sessionStorage.getItem("adminCode")||"",timer,credits={ru:"",en:""};
+const W={
+ru:{search:"Поиск по названию...",credits:"Создано",admin:"Администрирование",hint:"Введи код, чтобы открыть управление работами.",code:"Код администратора",login:"Войти",wrong:"Неверный код.",checking:"Проверяю…",logout:"Выйти",newWork:"Новая работа",title:"Название",desc:"Описание",titlePh:"Название работы",descPh:"Описание работы",choose:"Выбрать картинку",publish:"Выложить",uploading:"Выкладываю…",published:"Работа опубликована ✓",manage:"Опубликованные работы",edit:"✎ Редактировать",remove:"🗑 Удалить",save:"Сохранить",cancel:"Отмена",saving:"Сохраняю…",confirm:"Точно удалить эту публикацию?",emptyTitle:"Ничего не найдено",emptyText:"Попробуй другое название.",loadError:"Не удалось загрузить работы.",found:"Найдено",editCredits:"Изменить кредиты",creditsSaved:"Кредиты сохранены ✓",language:"English",noCredits:"Кредиты пока не заполнены.",replace:"Заменить картинку (необязательно)",listError:"Не удалось загрузить список публикаций.",connection:"Ошибка соединения.",failed:"Не удалось сохранить."},
+en:{search:"Search by title...",credits:"Credits",admin:"Administration",hint:"Enter the code to manage artworks.",code:"Admin code",login:"Log in",wrong:"Incorrect code.",checking:"Checking…",logout:"Log out",newWork:"New artwork",title:"Title",desc:"Description",titlePh:"Artwork title",descPh:"Artwork description",choose:"Choose image",publish:"Publish",uploading:"Publishing…",published:"Artwork published ✓",manage:"Published artworks",edit:"✎ Edit",remove:"🗑 Delete",save:"Save",cancel:"Cancel",saving:"Saving…",confirm:"Delete this artwork?",emptyTitle:"Nothing found",emptyText:"Try another title.",loadError:"Could not load artworks.",found:"Found",editCredits:"Edit credits",creditsSaved:"Credits saved ✓",language:"Русский",noCredits:"Credits have not been added yet.",replace:"Replace image (optional)",listError:"Could not load publications.",connection:"Connection error.",failed:"Could not save."}
+};
+const t=k=>W[lang][k]||W.ru[k]||k, titleOf=a=>lang==="en"?(a.title_en||a.title||""):(a.title||""), descOf=a=>lang==="en"?(a.description_en||a.description||""):(a.description||"");
+function switchLanguage(){location.href=(lang==="ru"?"/English":"/Russian")+location.search+location.hash;}
+function applyText(){
+ document.documentElement.lang=lang;$("languageBtn").textContent=t("language");$("creditsBtn").textContent=t("credits");$("creditsHeading").textContent=t("credits");
+ $("editCreditsBtn").textContent=t("editCredits");$("saveCredits").textContent=t("save");search.placeholder=t("search");
+ $("emptyTitle").textContent=t("emptyTitle");$("emptyText").textContent=t("emptyText");
+ $("loginView").querySelector("h1").textContent=t("admin");$("loginView").querySelector(".muted").textContent=t("hint");$("loginCode").placeholder=t("code");
+ $("loginForm").querySelector('button[type="submit"]').textContent=t("login");$("adminView").querySelector(".admin-title h1").textContent=t("newWork");
+ $("logoutBtn").textContent=t("logout");$("uploadForm").querySelector(".publish").textContent=t("publish");document.querySelector(".manage-heading").textContent=t("manage");
+ uploadForm.elements.title.placeholder=t("titlePh");uploadForm.elements.description.placeholder=t("descPh");
+ document.querySelectorAll("[data-field-language]").forEach(el=>el.textContent=lang.toUpperCase());
 }
-
-async function loadArtworks(q = "") {
-  try {
-    const response = await fetch(
-      "/api/artworks" + (q ? "?q=" + encodeURIComponent(q) : "")
-    );
-
-    if (!response.ok) throw new Error("Не удалось загрузить работы");
-
-    const artworks = await response.json();
-    gallery.innerHTML = "";
-    empty.classList.toggle("hidden", artworks.length > 0);
-
-    if (q) {
-      searchInfo.textContent = `Найдено: ${artworks.length} — «${q}»`;
-      searchInfo.classList.remove("hidden");
-    } else {
-      searchInfo.classList.add("hidden");
-    }
-
-    artworks.forEach((art, index) => {
-      const node = template.content.cloneNode(true);
-      const card = node.querySelector(".art-card");
-      const img = node.querySelector("img");
-      const title = node.querySelector("h2");
-      const description = node.querySelector("p");
-
-      img.src = art.image_url;
-      img.alt = art.title;
-      title.textContent = art.title;
-
-      if (art.description) {
-        description.textContent = art.description;
-      } else {
-        description.remove();
-      }
-
-      card.style.animationDelay = `${Math.min(index * 0.055, 0.6)}s`;
-
-      if (adminCode) {
-        const editButton = document.createElement("button");
-        editButton.type = "button";
-        editButton.className = "art-edit-button";
-        editButton.textContent = "✎";
-        editButton.title = "Управлять публикацией";
-        editButton.setAttribute("aria-label", "Управлять публикацией");
-        editButton.addEventListener("click", () => openAdmin());
-        card.appendChild(editButton);
-      }
-
-      gallery.appendChild(node);
-    });
-  } catch {
-    gallery.innerHTML = "";
-    empty.classList.remove("hidden");
-    searchInfo.textContent = "Не удалось загрузить работы.";
-    searchInfo.classList.remove("hidden");
-  }
+async function loadArtworks(q=""){
+ try{
+  const r=await fetch("/api/artworks",{cache:"no-store"});if(!r.ok)throw Error();let arts=await r.json();
+  if(q){const n=q.toLocaleLowerCase();arts=arts.filter(a=>[a.title,a.title_en,a.description,a.description_en].some(v=>String(v||"").toLocaleLowerCase().includes(n)));}
+  gallery.innerHTML="";empty.classList.toggle("hidden",arts.length>0);
+  if(q){searchInfo.textContent=t("found")+": "+arts.length+" — «"+q+"»";searchInfo.classList.remove("hidden");}else searchInfo.classList.add("hidden");
+  arts.forEach((a,i)=>{const node=template.content.cloneNode(true),card=node.querySelector(".art-card"),img=node.querySelector("img"),h=node.querySelector("h2"),p=node.querySelector("p");img.src=a.image_url;img.alt=titleOf(a);h.textContent=titleOf(a);const d=descOf(a);if(d)p.textContent=d;else p.remove();card.style.animationDelay=Math.min(i*.055,.6)+"s";if(adminCode){const b=document.createElement("button");b.type="button";b.className="art-edit-button";b.textContent="✎";b.title=t("edit");b.addEventListener("click",openAdmin);card.appendChild(b);}gallery.appendChild(node);});
+ }catch{$("emptyTitle").textContent=t("loadError");$("emptyText").textContent="";empty.classList.remove("hidden");}
 }
-
-function openAdmin() {
-  modal.classList.remove("hidden");
-
-  if (adminCode) {
-    showAdmin();
-  } else {
-    loginView.classList.remove("hidden");
-    adminView.classList.add("hidden");
-    loginCode.focus();
-  }
+function openAdmin(){modal.classList.remove("hidden");if(adminCode)showAdmin();else{$("loginView").classList.remove("hidden");$("adminView").classList.add("hidden");$("loginCode").focus();}}
+function closeAdmin(){modal.classList.add("hidden");}
+function showAdmin(){$("loginView").classList.add("hidden");$("adminView").classList.remove("hidden");$("loginError").textContent="";loadManageList();}
+function expireAdmin(){adminCode="";sessionStorage.removeItem("adminCode");closeAdmin();loadArtworks(search.value.trim());}
+$("adminBtn").addEventListener("click",openAdmin);$("closeModal").addEventListener("click",closeAdmin);
+modal.addEventListener("click",e=>{if(e.target===modal)closeAdmin();});$("languageBtn").addEventListener("click",switchLanguage);
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeAdmin();$("creditsModal").classList.add("hidden");}});
+$("loginForm").addEventListener("submit",async e=>{e.preventDefault();const code=$("loginCode").value.trim();if(!code)return;$("loginError").textContent=t("checking");try{const r=await fetch("/api/verify",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code})});if(!r.ok){$("loginError").textContent=t("wrong");return;}adminCode=code;sessionStorage.setItem("adminCode",code);showAdmin();loadArtworks(search.value.trim());loadCredits();}catch{$("loginError").textContent=t("connection");}});
+$("logoutBtn").addEventListener("click",()=>{adminCode="";sessionStorage.removeItem("adminCode");closeAdmin();loadArtworks(search.value.trim());});
+const uploadForm=$("uploadForm"),imageInput=$("imageInput"),fileName=$("fileName"),uploadStatus=$("uploadStatus"),manageList=$("manageList");
+imageInput.addEventListener("change",()=>fileName.textContent=imageInput.files[0]?.name||t("choose"));
+document.querySelectorAll("[data-toggle-language]").forEach(b=>b.addEventListener("click",()=>{const f=b.dataset.toggleLanguage,ru=document.querySelector('[data-lang-field="'+f+'"][data-lang="ru"]'),en=document.querySelector('[data-lang-field="'+f+'"][data-lang="en"]'),showEn=en.hidden;ru.hidden=!showEn;en.hidden=showEn;document.querySelector('[data-field-language="'+f+'"]').textContent=showEn?"EN":"RU";(showEn?en:ru).focus();}));
+uploadForm.addEventListener("submit",async e=>{e.preventDefault();if(!adminCode)return;uploadStatus.textContent=t("uploading");const fd=new FormData(uploadForm);fd.append("code",adminCode);try{const r=await fetch("/api/upload",{method:"POST",body:fd}),j=await r.json().catch(()=>({}));if(r.status===403){expireAdmin();return;}if(!r.ok){uploadStatus.textContent=j.error||t("failed");return;}uploadForm.reset();fileName.textContent=t("choose");document.querySelectorAll("[data-toggle-language]").forEach(b=>{const f=b.dataset.toggleLanguage;document.querySelector('[data-lang-field="'+f+'"][data-lang="ru"]').hidden=false;document.querySelector('[data-lang-field="'+f+'"][data-lang="en"]').hidden=true;document.querySelector('[data-field-language="'+f+'"]').textContent="RU";});uploadStatus.textContent=t("published");await loadArtworks(search.value.trim());await loadManageList();}catch{uploadStatus.textContent=t("connection");}});
+async function loadManageList(){if(!adminCode)return;try{const r=await fetch("/api/artworks",{cache:"no-store"});if(!r.ok)throw Error();const arts=await r.json();manageList.innerHTML=arts.map(a=>'<div class="manage-item" data-id="'+esc(a.id)+'"><img src="'+esc(a.image_url)+'" alt=""><div class="manage-item-content"><div class="title">'+esc(titleOf(a))+'</div><div class="manage-actions"><button type="button" class="edit">'+esc(t("edit"))+'</button><button type="button" class="delete">'+esc(t("remove"))+'</button></div></div></div>').join("");manageList.querySelectorAll(".edit").forEach(b=>b.addEventListener("click",()=>{const item=b.closest(".manage-item"),a=arts.find(x=>String(x.id)===item.dataset.id);if(a)showEditor(item,a);}));manageList.querySelectorAll(".delete").forEach(b=>b.addEventListener("click",()=>deleteArtwork(b.closest(".manage-item").dataset.id,b)));}catch{manageList.innerHTML='<p class="status">'+t("listError")+'</p>';}}
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
+function showEditor(item,a){
+ item.innerHTML='<form class="edit-form" enctype="multipart/form-data">'+
+ '<div class="language-input"><label>'+t("title")+' <span class="field-language">RU</span><input name="title" data-edit="title" data-lang="ru" maxlength="120" required value="'+esc(a.title||"")+'"><input name="title_en" data-edit="title" data-lang="en" maxlength="120" placeholder="Artwork title" value="'+esc(a.title_en||"")+'" hidden></label><button type="button" class="globe-toggle" data-toggle="title">🌐</button></div>'+
+ '<div class="language-input"><label>'+t("desc")+' <span class="field-language">RU</span><textarea name="description" data-edit="description" data-lang="ru" maxlength="500">'+esc(a.description||"")+'</textarea><textarea name="description_en" data-edit="description" data-lang="en" maxlength="500" placeholder="Artwork description" hidden>'+esc(a.description_en||"")+'</textarea></label><button type="button" class="globe-toggle" data-toggle="description">🌐</button></div>'+
+ '<label class="file-picker"><input name="image" type="file" accept="image/png,image/jpeg,image/webp,image/gif"><span>'+t("replace")+'</span></label>'+
+ '<div class="manage-actions"><button type="submit" class="save">'+t("save")+'</button><button type="button" class="cancel">'+t("cancel")+'</button><button type="button" class="delete">'+t("remove")+'</button></div><div class="edit-status status"></div></form>';
+ const form=item.querySelector("form"),status=item.querySelector(".edit-status");
+ form.querySelector('input[type="file"]').addEventListener("change",e=>{if(e.target.files[0])e.target.nextElementSibling.textContent=e.target.files[0].name;});
+ form.querySelector(".cancel").addEventListener("click",loadManageList);form.querySelector(".delete").addEventListener("click",()=>deleteArtwork(a.id,form.querySelector(".delete")));
+ form.querySelectorAll("[data-toggle]").forEach(b=>b.addEventListener("click",()=>{const f=b.dataset.toggle,ru=form.querySelector('[data-edit="'+f+'"][data-lang="ru"]'),en=form.querySelector('[data-edit="'+f+'"][data-lang="en"]'),showEn=en.hidden;ru.hidden=!showEn;en.hidden=showEn;b.closest(".language-input").querySelector(".field-language").textContent=showEn?"EN":"RU";}));
+ form.addEventListener("submit",async e=>{e.preventDefault();const save=form.querySelector(".save");save.disabled=true;status.textContent=t("saving");const fd=new FormData(form);try{const r=await fetch("/api/edit?id="+encodeURIComponent(a.id),{method:"PATCH",headers:{"x-admin-code":adminCode},body:fd}),j=await r.json().catch(()=>({}));if(r.status===403){expireAdmin();return;}if(!r.ok){status.textContent=j.error||t("failed");save.disabled=false;return;}await loadManageList();await loadArtworks(search.value.trim());}catch{status.textContent=t("connection");save.disabled=false;}});
 }
-
-function closeAdmin() {
-  modal.classList.add("hidden");
-}
-
-function showAdmin() {
-  loginView.classList.add("hidden");
-  adminView.classList.remove("hidden");
-  loginError.textContent = "";
-  loadManageList();
-}
-
-adminBtn.addEventListener("click", openAdmin);
-closeModal.addEventListener("click", closeAdmin);
-
-modal.addEventListener("click", e => {
-  if (e.target === modal) closeAdmin();
-});
-
-document.addEventListener("keydown", e => {
-  if (e.key === "Escape") closeAdmin();
-});
-
-loginForm.addEventListener("submit", async e => {
-  e.preventDefault();
-
-  const code = loginCode.value.trim();
-  if (!code) return;
-
-  loginError.textContent = "Проверяю…";
-
-  try {
-    const response = await fetch("/api/verify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code })
-    });
-
-    if (!response.ok) {
-      loginError.textContent = "Неверный код.";
-      return;
-    }
-
-    adminCode = code;
-    sessionStorage.setItem("adminCode", code);
-    showAdmin();
-    loadArtworks(search.value.trim());
-  } catch {
-    loginError.textContent = "Ошибка соединения.";
-  }
-});
-
-logoutBtn.addEventListener("click", () => {
-  adminCode = "";
-  sessionStorage.removeItem("adminCode");
-  adminView.classList.add("hidden");
-  loginView.classList.remove("hidden");
-  loginCode.value = "";
-  closeAdmin();
-  loadArtworks(search.value.trim());
-});
-
-imageInput.addEventListener("change", () => {
-  fileName.textContent = imageInput.files[0]?.name || "Выбрать картинку";
-});
-
-uploadForm.addEventListener("submit", async e => {
-  e.preventDefault();
-  if (!adminCode) return;
-
-  uploadStatus.textContent = "Выкладываю…";
-
-  const data = new FormData(uploadForm);
-  data.append("code", adminCode);
-
-  try {
-    const response = await fetch("/api/upload", {
-      method: "POST",
-      body: data
-    });
-
-    const result = await response.json().catch(() => ({}));
-
-    if (response.status === 403) {
-      expireAdmin();
-      uploadStatus.textContent = "Код больше не действителен.";
-      return;
-    }
-
-    if (!response.ok) {
-      uploadStatus.textContent =
-        result.error || `Ошибка ${response.status}.`;
-      return;
-    }
-
-    uploadForm.reset();
-    fileName.textContent = "Выбрать картинку";
-    uploadStatus.textContent = "Работа опубликована ✓";
-
-    await loadArtworks(search.value.trim());
-    await loadManageList();
-  } catch {
-    uploadStatus.textContent = "Ошибка соединения.";
-  }
-});
-
-function expireAdmin() {
-  adminCode = "";
-  sessionStorage.removeItem("adminCode");
-  closeAdmin();
-  loadArtworks(search.value.trim());
-}
-
-async function loadManageList() {
-  if (!adminCode) return;
-
-  try {
-    const response = await fetch("/api/artworks");
-    if (!response.ok) throw new Error("Ошибка загрузки");
-
-    const artworks = await response.json();
-
-    manageList.innerHTML = artworks.map(art => `
-      <div class="manage-item" data-id="${escapeHTML(art.id)}">
-        <img src="${escapeHTML(art.image_url)}" alt="">
-        <div class="manage-item-content">
-          <div class="title">${escapeHTML(art.title)}</div>
-          <div class="manage-actions">
-            <button type="button" class="edit">✎ Редактировать</button>
-            <button type="button" class="delete">🗑 Удалить</button>
-          </div>
-        </div>
-      </div>
-    `).join("");
-
-    manageList.querySelectorAll(".edit").forEach(button => {
-      button.addEventListener("click", () => {
-        const item = button.closest(".manage-item");
-        const art = artworks.find(a => String(a.id) === item.dataset.id);
-        if (art) showEditor(item, art);
-      });
-    });
-
-    manageList.querySelectorAll(".delete").forEach(button => {
-      button.addEventListener("click", () => {
-        const item = button.closest(".manage-item");
-        deleteArtwork(item.dataset.id, button);
-      });
-    });
-  } catch {
-    manageList.innerHTML =
-      '<p class="status">Не удалось загрузить список публикаций.</p>';
-  }
-}
-
-function showEditor(item, art) {
-  item.innerHTML = `
-    <form class="edit-form">
-      <label>Название
-        <input name="title" maxlength="120" required
-          value="${escapeHTML(art.title)}">
-      </label>
-      <label>Описание
-        <textarea name="description" maxlength="500">${escapeHTML(
-          art.description || ""
-        )}</textarea>
-      </label>
-      <div class="manage-actions">
-        <button type="submit" class="save">Сохранить</button>
-        <button type="button" class="cancel">Отмена</button>
-        <button type="button" class="delete">🗑 Удалить</button>
-      </div>
-      <div class="edit-status status"></div>
-    </form>
-  `;
-
-  const form = item.querySelector("form");
-  const status = item.querySelector(".edit-status");
-
-  form.querySelector(".cancel").addEventListener("click", loadManageList);
-
-  form.querySelector(".delete").addEventListener("click", () => {
-    deleteArtwork(art.id, form.querySelector(".delete"));
-  });
-
-  form.addEventListener("submit", async e => {
-    e.preventDefault();
-
-    const title = form.elements.title.value.trim();
-    const description = form.elements.description.value.trim();
-
-    if (!title) return;
-
-    const save = form.querySelector(".save");
-    save.disabled = true;
-    status.textContent = "Сохраняю…";
-
-    try {
-      const response = await fetch(
-        `/api/edit?id=${encodeURIComponent(art.id)}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            "x-admin-code": adminCode
-          },
-          body: JSON.stringify({ title, description })
-        }
-      );
-
-      const result = await response.json().catch(() => ({}));
-
-      if (response.status === 403) {
-        expireAdmin();
-        return;
-      }
-
-      if (!response.ok) {
-        status.textContent = result.error || "Не удалось сохранить.";
-        save.disabled = false;
-        return;
-      }
-
-      await loadManageList();
-      await loadArtworks(search.value.trim());
-    } catch {
-      status.textContent = "Ошибка соединения.";
-      save.disabled = false;
-    }
-  });
-}
-
-async function deleteArtwork(id, button) {
-  if (!confirm("Точно удалить эту публикацию?")) return;
-
-  button.disabled = true;
-
-  try {
-    const response = await fetch(
-      `/api/delete?id=${encodeURIComponent(id)}`,
-      {
-        method: "DELETE",
-        headers: { "x-admin-code": adminCode }
-      }
-    );
-
-    const result = await response.json().catch(() => ({}));
-
-    if (response.status === 403) {
-      expireAdmin();
-      return;
-    }
-
-    if (!response.ok) {
-      alert(result.error || "Не удалось удалить публикацию.");
-      button.disabled = false;
-      return;
-    }
-
-    await loadManageList();
-    await loadArtworks(search.value.trim());
-  } catch {
-    alert("Ошибка соединения.");
-    button.disabled = false;
-  }
-}
-
-search.addEventListener("input", () => {
-  clearTimeout(timer);
-  clearSearch.style.display = search.value ? "block" : "none";
-
-  timer = setTimeout(() => {
-    loadArtworks(search.value.trim());
-  }, 220);
-});
-
-clearSearch.addEventListener("click", () => {
-  search.value = "";
-  clearSearch.style.display = "none";
-  loadArtworks();
-  search.focus();
-});
-
-window.addEventListener("load", () => {
-  setTimeout(() => loader.classList.add("done"), 500);
-  loadArtworks();
-});
+async function deleteArtwork(id,b){if(!confirm(t("confirm")))return;b.disabled=true;try{const r=await fetch("/api/delete?id="+encodeURIComponent(id),{method:"DELETE",headers:{"x-admin-code":adminCode}}),j=await r.json().catch(()=>({}));if(r.status===403){expireAdmin();return;}if(!r.ok){alert(j.error||t("failed"));b.disabled=false;return;}await loadManageList();await loadArtworks(search.value.trim());}catch{alert(t("connection"));b.disabled=false;}}
+search.addEventListener("input",()=>{clearTimeout(timer);clearSearch.style.display=search.value?"block":"none";timer=setTimeout(()=>loadArtworks(search.value.trim()),220);});
+clearSearch.addEventListener("click",()=>{search.value="";clearSearch.style.display="none";loadArtworks();search.focus();});
+$("creditsBtn").addEventListener("click",()=>{$("creditsModal").classList.remove("hidden");loadCredits();});$("closeCredits").addEventListener("click",()=>$("creditsModal").classList.add("hidden"));$("creditsModal").addEventListener("click",e=>{if(e.target===$("creditsModal"))$("creditsModal").classList.add("hidden");});
+$("editCreditsBtn").addEventListener("click",()=>{$("creditsEditor").classList.toggle("hidden");$("creditsRuInput").value=credits.ru||"";$("creditsEnInput").value=credits.en||"";});
+async function loadCredits(){try{const r=await fetch("/api/credits",{cache:"no-store"});if(!r.ok)throw Error();credits=await r.json();}catch{credits={ru:"",en:""};}$("creditsText").textContent=(lang==="en"?credits.en:credits.ru)||t("noCredits");$("editCreditsBtn").classList.toggle("hidden",!adminCode);}
+$("saveCredits").addEventListener("click",async()=>{const status=$("creditsStatus");status.textContent=t("saving");try{const r=await fetch("/api/credits",{method:"POST",headers:{"Content-Type":"application/json","x-admin-code":adminCode},body:JSON.stringify({ru:$("creditsRuInput").value,en:$("creditsEnInput").value})}),j=await r.json().catch(()=>({}));if(r.status===403){expireAdmin();return;}if(!r.ok){status.textContent=j.error||t("failed");return;}credits={ru:$("creditsRuInput").value,en:$("creditsEnInput").value};$("creditsText").textContent=(lang==="en"?credits.en:credits.ru)||t("noCredits");status.textContent=t("creditsSaved");}catch{status.textContent=t("connection");}});
+window.addEventListener("load",()=>{applyText();setTimeout(()=>loader.classList.add("done"),500);loadArtworks();loadCredits();});
