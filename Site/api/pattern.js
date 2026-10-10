@@ -1,4 +1,4 @@
-import { isAdminPattern, setAdminPattern, validPattern } from "./_admin.js";
+import { isAdminPattern, setAdminPattern, validPattern } from "../lib/admin.js";
 
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
