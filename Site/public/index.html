@@ -35,8 +35,8 @@
 
     <section id="empty" class="empty hidden">
       <div class="empty-symbol">⌕</div>
-      <h2>Ничего не найдено</h2>
-      <p>Попробуй другое название.</p>
+      <h2 id="emptyTitle">Ничего не найдено</h2>
+      <p id="emptyText">Попробуй другое название.</p>
     </section>
   </main>
 
@@ -48,8 +48,8 @@
       <div id="creditsText" class="credits-text"></div>
       <button id="editCreditsBtn" class="secondary hidden" type="button">Изменить кредиты</button>
       <div id="creditsEditor" class="hidden">
-        <label>Текст на русском<textarea id="creditsRuInput" maxlength="5000"></textarea></label>
-        <label>Text in English<textarea id="creditsEnInput" maxlength="5000"></textarea></label>
+        <label id="creditsRuLabel">Текст на русском<textarea id="creditsRuInput" maxlength="5000"></textarea></label>
+        <label id="creditsEnLabel">Text in English<textarea id="creditsEnInput" maxlength="5000"></textarea></label>
         <button id="saveCredits" type="button">Сохранить</button>
         <div id="creditsStatus" class="status"></div>
       </div>

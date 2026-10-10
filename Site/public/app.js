@@ -9,15 +9,37 @@ en:{search:"Search by title...",credits:"Credits",admin:"Administration",hint:"E
 const t=k=>W[lang][k]||W.ru[k]||k, titleOf=a=>lang==="en"?(a.title_en||a.title||""):(a.title||""), descOf=a=>lang==="en"?(a.description_en||a.description||""):(a.description||"");
 function switchLanguage(){location.href=(lang==="ru"?"/English":"/Russian")+location.search+location.hash;}
 function applyText(){
- document.documentElement.lang=lang;$("languageBtn").textContent=t("language");$("creditsBtn").textContent=t("credits");$("creditsHeading").textContent=t("credits");
- $("editCreditsBtn").textContent=t("editCredits");$("saveCredits").textContent=t("save");search.placeholder=t("search");
- $("emptyTitle").textContent=t("emptyTitle");$("emptyText").textContent=t("emptyText");
- $("loginView").querySelector("h1").textContent=t("admin");$("loginView").querySelector(".muted").textContent=t("hint");$("loginCode").placeholder=t("code");
- $("loginForm").querySelector('button[type="submit"]').textContent=t("login");$("adminView").querySelector(".admin-title h1").textContent=t("newWork");
- $("logoutBtn").textContent=t("logout");$("uploadForm").querySelector(".publish").textContent=t("publish");document.querySelector(".manage-heading").textContent=t("manage");
- uploadForm.elements.title.placeholder=t("titlePh");uploadForm.elements.description.placeholder=t("descPh");
- document.querySelectorAll("[data-field-language]").forEach(el=>el.textContent=lang.toUpperCase());
+ document.documentElement.lang=lang;
+ $("languageBtn").textContent=t("language");
+ $("creditsBtn").textContent=t("credits");
+ $("creditsHeading").textContent=t("credits");
+ $("editCreditsBtn").textContent=t("editCredits");
+ $("saveCredits").textContent=t("save");
+ $("creditsRuLabel").childNodes[0].textContent=lang==="en"?"Text in Russian":"Текст на русском";
+ $("creditsEnLabel").childNodes[0].textContent=lang==="en"?"Text in English":"Текст на английском";
+ search.placeholder=t("search");
+ $("emptyTitle").textContent=t("emptyTitle");
+ $("emptyText").textContent=t("emptyText");
+ $("loginView").querySelector("h1").textContent=t("admin");
+ $("loginView").querySelector(".muted").textContent=t("hint");
+ $("loginCode").placeholder=t("code");
+ $("loginForm").querySelector('button[type="submit"]').textContent=t("login");
+ $("adminView").querySelector(".admin-title h1").textContent=t("newWork");
+ $("logoutBtn").textContent=t("logout");
+ $("uploadForm").querySelector(".publish").textContent=t("publish");
+ document.querySelector(".manage-heading").textContent=t("manage");
+ uploadForm.elements.title.placeholder=t("titlePh");
+ uploadForm.elements.title_en.placeholder="Artwork title";
+ uploadForm.elements.description.placeholder=t("descPh");
+ uploadForm.elements.description_en.placeholder="Artwork description";
+ $("fileName").textContent=imageInput.files[0]?.name||t("choose");
+ document.querySelectorAll("[data-field-language]").forEach(el=>{
+   const ru=el.closest(".language-input")?.querySelector('[data-lang="ru"]');
+   const en=el.closest(".language-input")?.querySelector('[data-lang="en"]');
+   el.textContent=(en&&!en.hidden)?"EN":"RU";
+ });
 }
+
 async function loadArtworks(q=""){
  try{
   const r=await fetch("/api/artworks",{cache:"no-store"});if(!r.ok)throw Error();let arts=await r.json();
