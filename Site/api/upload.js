@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import formidable from "formidable";import fs from "fs/promises";import path from "path";import crypto from "crypto";
+import formidable from "formidable";import fs from "fs/promises";import path from "path";import crypto from "crypto";import { isAdminPattern } from "./_admin.js";
 export const config={api:{bodyParser:false}};
 const supabase=createClient(process.env.SUPABASE_URL,process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false}});
 function parseForm(req){const form=formidable({multiples:false,maxFileSize:15*1024*1024,keepExtensions:true});return new Promise((resolve,reject)=>form.parse(req,(err,fields,files)=>err?reject(err):resolve({fields,files})));}
@@ -19,7 +19,7 @@ export default async function handler(req,res){
  let temp;
  try{
   const {fields,files}=await parseForm(req),code=val(fields.code);
-  if(!process.env.ADMIN_CODE||code!==process.env.ADMIN_CODE)return res.status(403).json({error:"Неверный код администратора."});
+  if(!await isAdminPattern(code))return res.status(403).json({error:"Неверный графический пароль."});
   const title=val(fields.title).trim(),description=val(fields.description).trim();let title_en=val(fields.title_en).trim(),description_en=val(fields.description_en).trim();
   // Translate once on creation; saved English text is stored in Supabase and is never regenerated automatically.
   if(!title_en) title_en=await translateOnce(title,"ru","en");
