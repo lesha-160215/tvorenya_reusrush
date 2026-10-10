@@ -576,3 +576,12 @@ label textarea { min-height: 105px; resize: vertical; }
 .pattern-settings #patternEditor{padding:2px 0 14px}
 .pattern-settings #savePattern{max-width:100%;margin-bottom:4px}
 #loginDone{margin-top:4px}
+
+/* Artwork likes */
+.like-button{display:inline-flex;align-items:center;gap:7px;margin-top:12px;padding:6px 10px;border:1px solid rgba(255,255,255,.1);border-radius:999px;background:rgba(255,255,255,.035);color:#aaa;font:inherit;font-size:13px;cursor:pointer;transition:color .2s ease,background .2s ease,border-color .2s ease,transform .2s ease}
+.like-button:hover{background:rgba(255,255,255,.075);border-color:rgba(255,255,255,.2);transform:translateY(-1px)}
+.like-button .like-heart{font-size:17px;line-height:1;color:#aaa;transition:color .2s ease,transform .2s ease}
+.like-button.liked{color:#f0a0ad;border-color:rgba(255,90,120,.25);background:rgba(255,70,105,.08)}
+.like-button.liked .like-heart{color:#ff607d}
+.like-button:disabled{opacity:.6;cursor:wait}
+.like-button:focus-visible{outline:2px solid rgba(255,255,255,.5);outline-offset:3px}
